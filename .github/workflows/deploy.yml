@@ -13,20 +13,9 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
-
-    - name: Install dependencies (if any)
-      run: npm install  # Add if you add build tools later
-
-    - name: Build (if needed)
-      run: npm run build  # Add if you add build tools later
-
     - name: Deploy to GitHub Pages
       uses: peaceiris/actions-gh-pages@v3
       if: github.ref == 'refs/heads/main'
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: .  # Since it's a single file, deploy from root
+        publish_dir: .  # Deploy the entire repo since it's static
