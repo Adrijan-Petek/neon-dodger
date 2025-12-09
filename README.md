@@ -2,7 +2,7 @@
 
 A fast-paced, neon-themed dodging game built with HTML5 Canvas and JavaScript. Dodge falling blocks as the difficulty increases over time. Integrated with Farcade SDK for cross-platform compatibility.
 
-![Game Screenshot](/neon.PNG) <!-- Replace with actual screenshot -->
+![Game Screenshot](/neon.png) <!-- Replace with actual screenshot -->
 
 ## 🚀 How to Play
 
