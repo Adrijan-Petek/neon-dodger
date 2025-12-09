@@ -2,7 +2,7 @@
 
 A fast-paced, neon-themed dodging game built with HTML5 Canvas and JavaScript. Dodge falling blocks as the difficulty increases over time. Integrated with Farcade SDK for cross-platform compatibility.
 
-![Game Screenshot](https://via.placeholder.com/320x480/020617/22c55e?text=Neon+Dodger) <!-- Replace with actual screenshot -->
+![Game Screenshot](/neon.pdf) <!-- Replace with actual screenshot -->
 
 ## 🚀 How to Play
 
