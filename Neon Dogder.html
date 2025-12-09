@@ -1,0 +1,900 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Neon Dodger</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #020617;
+        --panel: rgba(15, 23, 42, 0.95);
+        --accent: #22c55e;
+        --accent-soft: rgba(34, 197, 94, 0.25);
+        --text: #e5e7eb;
+        --muted: #9ca3af;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        min-height: 100vh;
+        background: radial-gradient(circle at top, #0f172a 0, #020617 45%, #000 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family:
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Inter",
+          sans-serif;
+        color: var(--text);
+      }
+
+      .frame {
+        width: min(480px, 100vw - 1.5rem);
+        height: min(720px, calc(100vh - 2rem));
+        border-radius: 20px;
+        border: 1px solid rgba(148, 163, 184, 0.35);
+        background: radial-gradient(circle at top, #020617 0, #000 55%, #020617);
+        box-shadow:
+          0 18px 60px rgba(15, 23, 42, 0.9),
+          0 0 0 1px rgba(15, 23, 42, 0.8);
+        overflow: hidden;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .header {
+        flex: 0 0 auto;
+        padding: 10px 14px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: linear-gradient(to bottom, rgba(15, 23, 42, 0.95), rgba(15, 23, 42, 0.85));
+        border-bottom: 1px solid rgba(148, 163, 184, 0.3);
+        z-index: 2;
+      }
+
+      .title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .title-icon {
+        width: 24px;
+        height: 24px;
+        border-radius: 999px;
+        background: conic-gradient(from 180deg, #22c55e, #06b6d4, #6366f1, #22c55e);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        box-shadow: 0 0 18px rgba(34, 197, 94, 0.7);
+      }
+
+      .title-text {
+        display: flex;
+        flex-direction: column;
+      }
+      .title-text span:first-child {
+        font-size: 13px;
+        font-weight: 600;
+      }
+      .title-text span:last-child {
+        font-size: 10px;
+        color: var(--muted);
+      }
+
+      .stats {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        font-size: 11px;
+      }
+
+      .badge {
+        padding: 3px 8px;
+        border-radius: 999px;
+        border: 1px solid rgba(148, 163, 184, 0.7);
+        background: rgba(15, 23, 42, 0.8);
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 10px;
+      }
+
+      .badge strong {
+        font-weight: 600;
+        color: #a5b4fc;
+      }
+
+      .game-wrap {
+        flex: 1 1 auto;
+        position: relative;
+        padding: 10px 10px 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      #gameCanvas {
+        width: 100%;
+        height: auto;
+        border-radius: 14px;
+        background: radial-gradient(circle at top, #020617 0, #020617 40%, #000);
+        border: 1px solid rgba(30, 64, 175, 0.7);
+        display: block;
+      }
+
+      .hint {
+        font-size: 10px;
+        color: var(--muted);
+        display: flex;
+        justify-content: space-between;
+        gap: 6px;
+      }
+
+      .btn {
+        border-radius: 999px;
+        border: 1px solid rgba(148, 163, 184, 0.6);
+        background: rgba(15, 23, 42, 0.9);
+        color: var(--text);
+        font-size: 11px;
+        padding: 6px 12px;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.14s ease;
+        text-decoration: none;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      .btn:hover {
+        background: rgba(30, 64, 175, 0.9);
+        border-color: rgba(129, 140, 248, 0.9);
+      }
+
+      .btn-primary {
+        background: linear-gradient(to right, #22c55e, #16a34a);
+        color: #020617;
+        border-color: rgba(134, 239, 172, 0.9);
+        box-shadow: 0 0 16px rgba(34, 197, 94, 0.4);
+      }
+
+      .btn-primary:hover {
+        filter: brightness(1.05);
+      }
+
+      #btnLeft {
+        position: absolute;
+        left: 15px;
+        bottom: 90px;
+      }
+
+      #btnRight {
+        position: absolute;
+        right: 15px;
+        bottom: 90px;
+      }
+
+      #btnLeft, #btnRight {
+        background: rgba(255, 255, 255, 0.7);
+        color: #000;
+        font-size: 18px;
+        padding: 16px 24px;
+        box-shadow: 0 0 20px rgba(34, 197, 94, 0.7);
+      }
+
+      .footer {
+        flex: 0 0 auto;
+        padding: 6px 10px 10px;
+        font-size: 10px;
+        color: var(--muted);
+        display: flex;
+        justify-content: space-between;
+        gap: 4px;
+        border-top: 1px solid rgba(15, 23, 42, 0.9);
+        background: radial-gradient(circle at bottom, #020617 0, #020617 60%, transparent);
+      }
+
+      .overlay {
+        position: absolute;
+        inset: 42px 10px 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        pointer-events: none;
+      }
+
+      .panel {
+        width: 90%;
+        max-width: 320px;
+        background: var(--panel);
+        border-radius: 18px;
+        border: 1px solid rgba(148, 163, 184, 0.5);
+        box-shadow:
+          0 18px 50px rgba(15, 23, 42, 0.9),
+          0 0 0 1px rgba(15, 23, 42, 0.8);
+        padding: 14px 14px 12px;
+        pointer-events: auto;
+        text-align: center;
+        animation: popIn 0.2s ease-out;
+      }
+
+      .panel h2 {
+        font-size: 18px;
+        margin-bottom: 4px;
+      }
+      .panel p {
+        font-size: 11px;
+        color: var(--muted);
+        margin-bottom: 10px;
+      }
+
+      .panel-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        margin-bottom: 8px;
+        font-size: 11px;
+      }
+
+      .panel-row span:first-child {
+        color: var(--muted);
+      }
+      .panel-row span:last-child {
+        color: #e5e7eb;
+        font-weight: 600;
+      }
+
+      .panel-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        margin-top: 8px;
+      }
+
+      @keyframes popIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px) scale(0.96);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+
+      @media (max-width: 768px) {
+        .header {
+          padding: 8px 10px;
+        }
+        .game-wrap {
+          padding-inline: 8px;
+        }
+        .panel {
+          padding: 12px;
+        }
+        .btn {
+          font-size: 18px;
+          padding: 16px 24px;
+          background: rgba(255, 255, 255, 0.9);
+          color: #000;
+          border: 1px solid rgba(148, 163, 184, 0.6);
+          box-shadow: 0 0 20px rgba(34, 197, 94, 0.7);
+        }
+        .hint {
+          font-size: 12px;
+        }
+      }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@farcade/game-sdk@0.2.1/dist/index.min.js"></script>
+  </head>
+  <body>
+    <div class="frame">
+      <header class="header">
+        <div class="title">
+          <div class="title-icon">🟢</div>
+          <div class="title-text">
+            <span>Neon Dodger</span>
+            <span>Dodge the blocks. Stay alive.</span>
+          </div>
+        </div>
+        <div class="stats">
+          <div class="badge">
+            <span>Score:</span>
+            <strong id="scoreLabel">0</strong>
+          </div>
+          <div class="badge">
+            <span>Best:</span>
+            <strong id="bestLabel">0</strong>
+          </div>
+        </div>
+      </header>
+
+      <div class="game-wrap">
+        <canvas id="gameCanvas" width="320" height="480"></canvas>
+
+        <div class="hint">
+          <span>← → or A / D to move • Tap buttons on mobile</span>
+          <span>Difficulty increases over time</span>
+        </div>
+
+        <button class="btn" id="btnLeft">⇦</button>
+        <button class="btn" id="btnRight">⇨</button>
+      </div>
+
+      <div class="footer">
+        <span>Local, offline HTML5 mini-game</span>
+        <span>Hooked for Farcade / Mini App / Remix</span>
+      </div>
+
+      <div class="overlay" id="overlayRoot" style="display: none"></div>
+    </div>
+
+    <!--
+    🔗 SDK HOOKS
+
+    In Farcade / Mini App / Remix you usually have their SDK available
+    via a global object or injected script.
+
+    You can:
+    - Load them via external <script src="..."></script> here
+    - Or the host platform injects them for you.
+
+    Examples (replace with real URLs from docs):
+    <script src=".../miniapp-sdk.js"></script>
+    <script src=".../remix-sdk.js"></script>
+  -->
+
+    <script>
+      // ==========================
+      //  SDK HOOKS (Farcaster / Remix)
+      // ==========================
+
+      let miniAppSdk = null; // Farcaster Mini App SDK instance (if available)
+      let remixSdk = null; // Farcade Remix SDK instance (if available)
+
+      async function initMiniAppSdk() {
+        try {
+          // If host injects a global `sdk`, use it:
+          if (window.sdk && window.sdk.actions) {
+            miniAppSdk = window.sdk;
+            // In many examples: await sdk.actions.ready()
+            if (miniAppSdk.actions.ready) {
+              await miniAppSdk.actions.ready();
+            }
+          }
+
+          // If you instead load it via module (bundler), you would do:
+          // const { sdk } = await import('@farcaster/miniapp-sdk');
+          // await sdk.actions.ready();
+          // miniAppSdk = sdk;
+        } catch (e) {
+          console.log("MiniApp SDK not available or failed to init:", e);
+        }
+      }
+
+      async function initRemixSdk() {
+        try {
+          if (window.FarcadeSDK) {
+            remixSdk = window.FarcadeSDK;
+            const gameInfo = await remixSdk.singlePlayer.actions.ready();
+            console.log("Farcade SDK ready", gameInfo);
+
+            // Set up event listeners
+            remixSdk.on('play_again', () => {
+              setOverlay(null);
+              startGame();
+            });
+
+            remixSdk.on('toggle_mute', (data) => {
+              sounds.enabled = !data.isMuted;
+            });
+          }
+        } catch (e) {
+          console.log("Remix SDK not available or failed to init:", e);
+        }
+      }
+
+      function notifyGameStart() {
+        // Called on each new game start
+        // TODO: Send "game_start" event to your SDKs, with whatever schema you want.
+        // Example (pseudo-code only, replace with real methods):
+        //
+        // if (miniAppSdk?.actions?.call) {
+        //   miniAppSdk.actions.call({ type: 'game_start', game: 'neon_dodger' })
+        // }
+        //
+        // if (remixSdk?.sendEvent) {
+        //   remixSdk.sendEvent('game_start', { game: 'neon_dodger' })
+        // }
+      }
+
+      function notifyGameOver(finalScore) {
+        // Called when the player dies
+        // TODO: Send "game_over" / "score" event to your SDKs.
+        //
+        // Example pseudo-code:
+        // if (miniAppSdk?.actions?.call) {
+        //   miniAppSdk.actions.call({ type: 'game_over', score: finalScore })
+        // }
+        //
+        // if (remixSdk?.sendEvent) {
+        //   remixSdk.sendEvent('game_over', { score: finalScore })
+        // }
+        if (remixSdk?.singlePlayer?.actions?.gameOver) {
+          remixSdk.singlePlayer.actions.gameOver({ score: finalScore });
+        }
+      }
+
+      // Kick off SDK init (non-blocking)
+      initMiniAppSdk();
+      initRemixSdk();
+    </script>
+
+    <script>
+      // ==========================
+      //  SOUND MANAGER
+      // ==========================
+
+      const SOUND_URL_BGM = "https://remix.gg/blob/82cf36ab-2041-42f7-8cec-52b92d7d0e2e/retro-arcade-game-music-297305-kXdpIjFi5Ov9ONhb3GSOFgeE8zJMTu.mp3?573Q.mp3"; // TODO: replace
+      const SOUND_URL_START = "https://remix.gg/blob/82cf36ab-2041-42f7-8cec-52b92d7d0e2e/sound-effect-5376-YXnzwo1o8SHVM1eTOoaFnX9dme7O5C.mp3?NVJm.mp3"; // TODO: replace
+      const SOUND_URL_HIT = "https://remix.gg/blob/82cf36ab-2041-42f7-8cec-52b92d7d0e2e/sound-effect-1373-28BUrQrVmVMPm4JsAW79psZ5tVxQWK.mp3?nVGa.mp3"; // TODO: replace
+
+      const sounds = {
+        bgm: null,
+        start: null,
+        hit: null,
+        ready: false,
+        enabled: true, // You can toggle this if you add a sound on/off button
+      };
+
+      function initSounds() {
+        try {
+          if (SOUND_URL_BGM) {
+            sounds.bgm = new Audio(SOUND_URL_BGM);
+            sounds.bgm.loop = true;
+            sounds.bgm.volume = 0.4;
+          }
+          if (SOUND_URL_START) {
+            sounds.start = new Audio(SOUND_URL_START);
+            sounds.start.volume = 0.7;
+          }
+          if (SOUND_URL_HIT) {
+            sounds.hit = new Audio(SOUND_URL_HIT);
+            sounds.hit.volume = 0.9;
+          }
+          sounds.ready = true;
+        } catch (e) {
+          console.log("Audio init error:", e);
+        }
+      }
+
+      function playSound(name) {
+        if (!sounds.enabled || !sounds.ready) return;
+        const snd = sounds[name];
+        if (!snd) return;
+        try {
+          snd.currentTime = 0;
+          snd.play().catch(() => {});
+        } catch (e) {}
+      }
+
+      function startBgm() {
+        if (!sounds.enabled || !sounds.bgm) return;
+        try {
+          // Browsers sometimes need a user gesture first (we call this from button click)
+          sounds.bgm.currentTime = 0;
+          sounds.bgm.play().catch(() => {});
+        } catch (e) {}
+      }
+
+      function stopBgm() {
+        if (!sounds.bgm) return;
+        try {
+          sounds.bgm.pause();
+        } catch (e) {}
+      }
+
+      // Initialize sound objects once DOM is ready
+      initSounds();
+    </script>
+
+    <script>
+      // ==========================
+      //  CORE GAME LOGIC
+      // ==========================
+      const canvas = document.getElementById("gameCanvas");
+      const ctx = canvas.getContext("2d");
+
+      const scoreLabel = document.getElementById("scoreLabel");
+      const bestLabel = document.getElementById("bestLabel");
+      const overlayRoot = document.getElementById("overlayRoot");
+      const btnLeft = document.getElementById("btnLeft");
+      const btnRight = document.getElementById("btnRight");
+
+      const GAME_WIDTH = canvas.width;
+      const GAME_HEIGHT = canvas.height;
+
+      const player = {
+        x: GAME_WIDTH / 2,
+        y: GAME_HEIGHT - 100,
+        radius: 13,
+        speed: 200, // px/s
+        direction: 0, // -1 left, 1 right (mobile buttons)
+      };
+
+      let blocks = [];
+      let lastTime = 0;
+      let running = false;
+      let score = 0;
+      let bestScore = 0;
+      let elapsed = 0;
+      let spawnTimer = 0;
+      let spawnInterval = 0.8;
+      let difficultyLevel = 1;
+      const keys = { left: false, right: false };
+
+      // ---------- UI helpers ----------
+      function setOverlay(contentHtml) {
+        if (!contentHtml) {
+          overlayRoot.style.display = "none";
+          overlayRoot.innerHTML = "";
+          return;
+        }
+        overlayRoot.innerHTML = contentHtml;
+        overlayRoot.style.display = "flex";
+      }
+
+      function renderStartOverlay() {
+        const html = `
+        <div class="panel">
+          <h2>Neon Dodger</h2>
+          <p>Move your orb and avoid the falling blocks. The longer you survive, the faster it gets.</p>
+          <div class="panel-row">
+            <span>Controls</span>
+            <span>← → or A / D • Buttons</span>
+          </div>
+          <div class="panel-row">
+            <span>Goal</span>
+            <span>Survive & set a new best score</span>
+          </div>
+          <div class="panel-row">
+            <span>Best score</span>
+            <span id="overlayBest">${bestScore.toFixed(1)}</span>
+          </div>
+          <div class="panel-buttons">
+            <button class="btn btn-primary" id="overlayStartBtn">▶️ Start Game</button>
+          </div>
+        </div>
+      `;
+        setOverlay(html);
+        const btn = document.getElementById("overlayStartBtn");
+        btn.onclick = () => {
+          setOverlay(null);
+          startGame();
+        };
+        btn.addEventListener("touchstart", (e) => {
+          e.preventDefault();
+          setOverlay(null);
+          startGame();
+        }, { passive: false });
+      }
+
+      function renderGameOverOverlay() {
+        const html = `
+        <div class="panel">
+          <h2>Game Over</h2>
+          <p>You collided with a block. But you can always try again.</p>
+          <div class="panel-row">
+            <span>Score</span>
+            <span>${score}</span>
+          </div>
+          <div class="panel-row">
+            <span>Best</span>
+            <span>${bestScore.toFixed(1)}</span>
+          </div>
+          <div class="panel-row">
+            <span>Difficulty</span>
+            <span>Level ${difficultyLevel}</span>
+          </div>
+          <div class="panel-buttons">
+            <button class="btn btn-primary" id="overlayRetryBtn">🔁 Play Again</button>
+          </div>
+        </div>
+      `;
+        setOverlay(html);
+        const btn = document.getElementById("overlayRetryBtn");
+        btn.onclick = () => {
+          setOverlay(null);
+          startGame();
+        };
+        btn.addEventListener("touchstart", (e) => {
+          e.preventDefault();
+          setOverlay(null);
+          startGame();
+        }, { passive: false });
+      }
+
+      // ---------- Game control ----------
+      function resetGame() {
+        player.x = GAME_WIDTH / 2;
+        player.y = GAME_HEIGHT - 100;
+        player.direction = 0;
+        blocks = [];
+        score = 0;
+        elapsed = 0;
+        spawnTimer = 0;
+        spawnInterval = 0.8;
+        difficultyLevel = 1;
+        updateScoreLabels();
+      }
+
+      function startGame() {
+        resetGame();
+        running = true;
+        lastTime = performance.now();
+        playSound("start");
+        startBgm();
+        notifyGameStart();
+      }
+
+      function endGame() {
+        running = false;
+        stopBgm();
+        playSound("hit");
+        if (remixSdk?.singlePlayer?.actions?.hapticFeedback) {
+          remixSdk.singlePlayer.actions.hapticFeedback();
+        }
+        if (score > bestScore) {
+          bestScore = score;
+          try {
+            localStorage.setItem("neon_dodger_best", String(bestScore));
+          } catch (e) {}
+        }
+        updateScoreLabels();
+        notifyGameOver(score);
+      }
+
+      function updateScoreLabels() {
+        scoreLabel.textContent = score;
+        bestLabel.textContent = bestScore.toFixed(1);
+      }
+
+      function spawnBlock() {
+        const width = 40 + Math.random() * 40;
+        const x = Math.random() * (GAME_WIDTH - width);
+        const baseSpeed = 90 + difficultyLevel * 35;
+        const speed = baseSpeed + Math.random() * 30;
+
+        blocks.push({
+          x,
+          y: -20,
+          width,
+          height: 20 + Math.random() * 15,
+          speed,
+        });
+      }
+
+      function updateDifficulty(dt) {
+        elapsed += dt;
+        score = Math.floor(elapsed * 10); // scoreboard
+
+        const newLevel = 1 + Math.floor(elapsed / 15);
+        if (newLevel !== difficultyLevel) {
+          difficultyLevel = newLevel;
+          spawnInterval = Math.max(0.32, spawnInterval - 0.08);
+        }
+        updateScoreLabels();
+      }
+
+      function updatePlayer(dt) {
+        const move = player.speed * dt;
+        if (keys.left && !keys.right) {
+          player.x -= move;
+        } else if (keys.right && !keys.left) {
+          player.x += move;
+        } else if (player.direction !== 0) {
+          player.x += move * player.direction;
+        }
+
+        const margin = player.radius + 4;
+        if (player.x < margin) player.x = margin;
+        if (player.x > GAME_WIDTH - margin) player.x = GAME_WIDTH - margin;
+      }
+
+      function updateBlocks(dt) {
+        spawnTimer += dt;
+        if (spawnTimer >= spawnInterval) {
+          spawnTimer -= spawnInterval;
+          spawnBlock();
+        }
+
+        for (const block of blocks) {
+          block.y += block.speed * dt;
+        }
+
+        blocks = blocks.filter((b) => b.y < GAME_HEIGHT + 40);
+      }
+
+      function checkCollision() {
+        for (const b of blocks) {
+          const nearestX = Math.max(b.x, Math.min(player.x, b.x + b.width));
+          const nearestY = Math.max(b.y, Math.min(player.y, b.y + b.height));
+          const dx = player.x - nearestX;
+          const dy = player.y - nearestY;
+          if (dx * dx + dy * dy < player.radius * player.radius) {
+            return true;
+          }
+        }
+        return false;
+      }
+
+      // ---------- Rendering ----------
+      function clearCanvas() {
+        ctx.clearRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+      }
+
+      function drawBackground() {
+        const gradient = ctx.createRadialGradient(GAME_WIDTH / 2, 0, 40, GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_HEIGHT);
+        gradient.addColorStop(0, "#020617");
+        gradient.addColorStop(0.45, "#020617");
+        gradient.addColorStop(1, "#000000");
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+
+        ctx.strokeStyle = "rgba(30, 64, 175, 0.18)";
+        ctx.lineWidth = 1;
+        for (let y = 60; y < GAME_HEIGHT; y += 40) {
+          ctx.beginPath();
+          ctx.moveTo(0, y);
+          ctx.lineTo(GAME_WIDTH, y);
+          ctx.stroke();
+        }
+      }
+
+      function drawPlayer() {
+        const glowRadius = player.radius + 6;
+        const gradient = ctx.createRadialGradient(player.x, player.y, 0, player.x, player.y, glowRadius);
+        gradient.addColorStop(0, "#bbf7d0");
+        gradient.addColorStop(0.55, "#22c55e");
+        gradient.addColorStop(1, "rgba(34, 197, 94, 0)");
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(player.x, player.y, glowRadius, 0, Math.PI * 2);
+        ctx.fill();
+
+        const coreGradient = ctx.createRadialGradient(player.x - 3, player.y - 3, 2, player.x, player.y, player.radius);
+        coreGradient.addColorStop(0, "#ecfeff");
+        coreGradient.addColorStop(1, "#16a34a");
+        ctx.fillStyle = coreGradient;
+        ctx.beginPath();
+        ctx.arc(player.x, player.y, player.radius, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = "rgba(248, 250, 252, 0.9)";
+        ctx.beginPath();
+        ctx.arc(player.x - 4, player.y - 5, 3, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      function drawBlocks() {
+        for (const b of blocks) {
+          const gradient = ctx.createLinearGradient(b.x, b.y, b.x, b.y + b.height);
+          gradient.addColorStop(0, "rgba(129, 140, 248, 0.1)");
+          gradient.addColorStop(0.4, "rgba(56, 189, 248, 0.3)");
+          gradient.addColorStop(1, "rgba(37, 99, 235, 0.9)");
+          ctx.fillStyle = gradient;
+
+          ctx.beginPath();
+          const r = 6;
+          ctx.moveTo(b.x + r, b.y);
+          ctx.lineTo(b.x + b.width - r, b.y);
+          ctx.quadraticCurveTo(b.x + b.width, b.y, b.x + b.width, b.y + r);
+          ctx.lineTo(b.x + b.width, b.y + b.height - r);
+          ctx.quadraticCurveTo(b.x + b.width, b.y + b.height, b.x + b.width - r, b.y + b.height);
+          ctx.lineTo(b.x + r, b.y + b.height);
+          ctx.quadraticCurveTo(b.x, b.y + b.height, b.x, b.y + b.height - r);
+          ctx.lineTo(b.x, b.y + r);
+          ctx.quadraticCurveTo(b.x, b.y, b.x + r, b.y);
+          ctx.closePath();
+          ctx.fill();
+
+          ctx.strokeStyle = "rgba(248, 250, 252, 0.22)";
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(b.x + 3, b.y + 1.5);
+          ctx.lineTo(b.x + b.width - 3, b.y + 1.5);
+          ctx.stroke();
+        }
+      }
+
+      function drawHUD() {
+        ctx.font = "10px system-ui, sans-serif";
+        ctx.textAlign = "left";
+        ctx.textBaseline = "top";
+        ctx.fillStyle = "rgba(148, 163, 184, 0.9)";
+        ctx.fillText("Level " + difficultyLevel, 8, 8);
+
+        ctx.textAlign = "right";
+        ctx.fillText(score, GAME_WIDTH - 8, 8);
+      }
+
+      function gameLoop(timestamp) {
+        const dt = (timestamp - lastTime) / 1000;
+        lastTime = timestamp;
+
+        if (running) {
+          updateDifficulty(dt);
+          updatePlayer(dt);
+          updateBlocks(dt);
+          if (checkCollision()) endGame();
+        }
+
+        clearCanvas();
+        drawBackground();
+        drawBlocks();
+        drawPlayer();
+        drawHUD();
+
+        requestAnimationFrame(gameLoop);
+      }
+
+      // ---------- Input ----------
+      window.addEventListener("keydown", (e) => {
+        if (e.key === "ArrowLeft" || e.key === "a" || e.key === "A") keys.left = true;
+        if (e.key === "ArrowRight" || e.key === "d" || e.key === "D") keys.right = true;
+        if (!running && (e.key === " " || e.key === "Enter")) {
+          setOverlay(null);
+          startGame();
+        }
+      });
+
+      window.addEventListener("keyup", (e) => {
+        if (e.key === "ArrowLeft" || e.key === "a" || e.key === "A") keys.left = false;
+        if (e.key === "ArrowRight" || e.key === "d" || e.key === "D") keys.right = false;
+      });
+
+      function bindHoldButton(button, direction) {
+        const start = (e) => {
+          e.preventDefault();
+          player.direction = direction;
+        };
+        const end = (e) => {
+          e.preventDefault();
+          player.direction = 0;
+        };
+        button.addEventListener("mousedown", start);
+        button.addEventListener("touchstart", start, { passive: false });
+        window.addEventListener("mouseup", end);
+        window.addEventListener("touchend", end);
+        window.addEventListener("touchcancel", end);
+      }
+
+      bindHoldButton(btnLeft, -1);
+      bindHoldButton(btnRight, 1);
+
+      // ---------- Init ----------
+      (function init() {
+        try {
+          const stored = localStorage.getItem("neon_dodger_best");
+          if (stored) bestScore = parseFloat(stored) || 0;
+        } catch (e) {}
+        updateScoreLabels();
+        renderStartOverlay();
+        lastTime = performance.now();
+        requestAnimationFrame(gameLoop);
+      })();
+    </script>
+  </body>
+</html>
